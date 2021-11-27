@@ -10,8 +10,8 @@ const App = () => {
   return (
     <Router>
       <MainNavigation />
-      <Switch>
-        <main>
+      <main>
+        <Switch>
           <Route path='/' exact>
             <Users />
           </Route>
@@ -19,14 +19,14 @@ const App = () => {
           <Route path='/:userId/places' exact>
             <UserPlaces />
           </Route>
-          
+
 
           <Route path='/places/new' exact component={NewPlace}>
           </Route>
 
           <Redirect to='/' />
-        </main>
-      </Switch>
+        </Switch>
+      </main>
     </Router>
   );
 }
