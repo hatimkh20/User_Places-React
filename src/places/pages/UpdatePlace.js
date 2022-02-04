@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
-import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from "../../shared/util/validators";
+import {
+  VALIDATOR_MINLENGTH,
+  VALIDATOR_REQUIRE,
+} from "../../shared/util/validators";
 
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import { useForm } from "../../shared/hooks/form-hook";
-import "./PlaceForm.css"
+import "./PlaceForm.css";
 
 const DUMMY_PLACES = [
   {
@@ -41,44 +44,71 @@ const DUMMY_PLACES = [
 ];
 
 const UpdatePlaces = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const placeId = useParams().placeId;
-  const identifiedPlace = DUMMY_PLACES.find((p) => p.id === placeId);
 
-  const [formState, inputHandler] = useForm(
+  const [formState, inputHandler, setFormData] = useForm(
     {
       title: {
-        value: identifiedPlace.title,
-        isValid: true
+        value: "",
+        isValid: false,
       },
       description: {
-        value: identifiedPlace.description,
-        isValid: true
-      }
+        value: "",
+        isValid: false,
+      },
     },
-    true
+    false
   );
 
-  const placeUpdateSubmitHandler = event => {
+  const identifiedPlace = DUMMY_PLACES.find((p) => p.id === placeId);
+
+  useEffect(() => {
+    setFormData(
+      {
+        title: {
+          value: identifiedPlace.title,
+          isValid: true,
+        },
+        description: {
+          value: identifiedPlace.description,
+          isValid: true,
+        },
+      },
+      true
+    );
+    setIsLoading(false)
+  }, [setFormData, identifiedPlace]);
+
+  const placeUpdateSubmitHandler = (event) => {
     event.preventDefault();
     console.log(formState.inputs);
   };
 
-
   console.log(formState);
 
-  if (!identifiedPlace) {
+  if (isLoading) {
     return (
       <div className="center">
         <h2>Could not find any place.</h2>
       </div>
     );
   }
-  return <form className="place-form" onSubmit={placeUpdateSubmitHandler}>
-      <Input 
-        id='title' 
-        element='input'
-        type='text'
-        label='Title'
+
+  if(!formState.inputs.title.value) {
+    return (
+      <div className="center">
+        <h2>Loading.</h2>
+      </div>
+    );
+  }
+  return (
+    <form className="place-form" onSubmit={placeUpdateSubmitHandler}>
+      <Input
+        id="title"
+        element="input"
+        type="text"
+        label="Title"
         validators={[VALIDATOR_REQUIRE()]}
         errorText="Please enter a valid title."
         onInput={inputHandler}
@@ -86,10 +116,10 @@ const UpdatePlaces = () => {
         initialValid={formState.inputs.title.isValid}
       />
 
-      <Input 
-        id='description' 
-        type='textarea'
-        label='Description'
+      <Input
+        id="description"
+        type="textarea"
+        label="Description"
         validators={[VALIDATOR_MINLENGTH(5)]}
         errorText="Please enter a valid description."
         onInput={inputHandler}
@@ -97,8 +127,11 @@ const UpdatePlaces = () => {
         initialValid={formState.inputs.description.isValid}
       />
 
-      <Button type="submit" disabled={!formState.isValid}>UPDATE</Button>
-  </form>
+      <Button type="submit" disabled={!formState.isValid}>
+        UPDATE
+      </Button>
+    </form>
+  );
 };
 
 export default UpdatePlaces;
