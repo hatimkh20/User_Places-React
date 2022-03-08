@@ -7,6 +7,7 @@ import {
 
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
+import Card from "../../shared/components/UIElements/Card";
 import { useForm } from "../../shared/hooks/form-hook";
 import "./PlaceForm.css";
 
@@ -64,20 +65,23 @@ const UpdatePlaces = () => {
   const identifiedPlace = DUMMY_PLACES.find((p) => p.id === placeId);
 
   useEffect(() => {
-    setFormData(
-      {
-        title: {
-          value: identifiedPlace.title,
-          isValid: true,
+    if (identifiedPlace) {
+      setFormData(
+        {
+          title: {
+            value: identifiedPlace.title,
+            isValid: true,
+          },
+          description: {
+            value: identifiedPlace.description,
+            isValid: true,
+          },
         },
-        description: {
-          value: identifiedPlace.description,
-          isValid: true,
-        },
-      },
-      true
-    );
-    setIsLoading(false)
+        true
+      );
+    }
+
+    setIsLoading(false);
   }, [setFormData, identifiedPlace]);
 
   const placeUpdateSubmitHandler = (event) => {
@@ -87,18 +91,20 @@ const UpdatePlaces = () => {
 
   console.log(formState);
 
-  if (isLoading) {
+  if (!identifiedPlace) {
     return (
       <div className="center">
-        <h2>Could not find any place.</h2>
+        <Card>
+          <h2>Could not find any place.</h2>
+        </Card>
       </div>
     );
   }
 
-  if(!formState.inputs.title.value) {
+  if (isLoading) {
     return (
       <div className="center">
-        <h2>Loading.</h2>
+        <h2>Loading..</h2>
       </div>
     );
   }
