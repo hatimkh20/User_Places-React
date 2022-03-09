@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import Card from "../../shared/components/UIElements/Card";
 import Button from "../../shared/components/FormElements/Button";
 import Modal from "../../shared/components/UIElements/Modal";
 import Map from "../../shared/components/UIElements/Map";
 import "./PlaceItem.css";
+import { AuthContext } from "../../shared/context/auth-context";
 
 const PlaceItem = (props) => {
+  const auth = useContext(AuthContext);
   const [showMap, setShowMap] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
 
@@ -19,9 +21,9 @@ const PlaceItem = (props) => {
   const closeDeleteConfirmModalHandler = () => setShowDeleteConfirmModal(false);
 
   const confirmDeleteModalHandler = () => {
-    console.log("Deleting")
+    console.log("Deleting");
     setShowDeleteConfirmModal(false);
-  }
+  };
 
   return (
     <React.Fragment>
@@ -45,8 +47,12 @@ const PlaceItem = (props) => {
         footerClass="place-item__model-actions"
         footer={
           <React.Fragment>
-            <Button inverse onClick={closeDeleteConfirmModalHandler}>Cancel</Button>
-            <Button danger onClick={confirmDeleteModalHandler}>Delete</Button>
+            <Button inverse onClick={closeDeleteConfirmModalHandler}>
+              Cancel
+            </Button>
+            <Button danger onClick={confirmDeleteModalHandler}>
+              Delete
+            </Button>
           </React.Fragment>
         }
       >
@@ -68,8 +74,15 @@ const PlaceItem = (props) => {
             <Button inverse onClick={openMapHandler}>
               View On Map
             </Button>
-            <Button to={`/places/${props.id}`}>Edit</Button>
-            <Button danger onClick={openDeleteConfirmModalHandler}>Delete</Button>
+
+            {auth.isLoggedIn && (
+              <React.Fragment>
+                <Button to={`/places/${props.id}`}>Edit</Button>
+                <Button danger onClick={openDeleteConfirmModalHandler}>
+                  Delete
+                </Button>
+              </React.Fragment>
+            )}
           </div>
         </Card>
       </li>
