@@ -18,8 +18,7 @@ import "./Auth.css";
 const Auth = () => {
   const auth = useContext(AuthContext);
   const [isLoginMode, setIsLoginMode] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState();
+  
   const [formState, inputHandler, setFormData] = useForm(
     {
       email: {
@@ -75,13 +74,9 @@ const Auth = () => {
           }),
         });
 
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          throw new Error(responseData.message);
-        }
         setIsLoading(false);
         auth.login();
+
       } catch (err) {
         console.log(err);
         setIsLoading(false);
