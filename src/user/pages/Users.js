@@ -1,16 +1,45 @@
-import React from 'react';
-import UsersList from '../components/UsersList';
+import React, { useEffect, useState } from "react";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
+import UsersList from "../components/UsersList";
 
 const Users = () => {
-  const USER = [
-    {
-    id: 'u1',
-    name: 'Hatim Khuzema',
-    image: 'https://img.freepik.com/free-photo/waist-up-portrait-handsome-serious-unshaven-male-keeps-hands-together-dressed-dark-blue-shirt-has-talk-with-interlocutor-stands-against-white-wall-self-confident-man-freelancer_273609-16320.jpg?size=626&ext=jpg',
-    places: '2'
-  }
-]
-  return <UsersList items={USER} />
-}
+  const [isLoading, setIsLoading] = useState();
+  const [error, setError] = useState(false);
+  const [loadedUsers, setLoadedUsers] = useState();
+
+  useEffect(() => {
+    const sendRequest = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:5000/api/users/");
+
+        const responseData = await response.json();
+        console.log(responseData);
+        if (!response.ok) {
+          throw new Error(responseData.message);
+        }
+        setLoadedUsers(responseData.users);
+      } catch (err) {
+        setError(err.message || "Something went wrong.");
+      }
+      setIsLoading(false);
+    };
+    sendRequest();
+  }, []);
+
+  const errorHandler = () => setError(null);
+  return (
+    <React.Fragment>
+      <ErrorModal error={error} onClear={errorHandler} />
+      {isLoading && (
+        <div className="center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {!isLoading && loadedUsers && <UsersList items={loadedUsers} />}
+    </React.Fragment>
+  );
+};
 
 export default Users;
