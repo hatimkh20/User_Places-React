@@ -140,7 +140,7 @@ const Auth = () => {
             placeholder="***********"
             element="input"
             label="Password"
-            validators={[VALIDATOR_MINLENGTH(5)]}
+            validators={[VALIDATOR_MINLENGTH(6)]}
             errorText="Please enter valid password"
             onInput={inputHandler}
             value=""
