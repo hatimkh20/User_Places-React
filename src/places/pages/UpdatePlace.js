@@ -1,143 +1,136 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom/cjs/react-router-dom.min";
+import React, { useEffect, useState, useContext } from 'react';
+import { useParams, useHistory } from 'react-router-dom';
+
+import Input from '../../shared/components/FormElements/Input';
+import Button from '../../shared/components/FormElements/Button';
+import Card from '../../shared/components/UIElements/Card';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
 import {
-  VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE,
-} from "../../shared/util/validators";
+  VALIDATOR_MINLENGTH
+} from '../../shared/util/validators';
+import { useForm } from '../../shared/hooks/form-hook';
+import { useHttpClient } from '../../shared/hooks/http-hook';
+import { AuthContext } from '../../shared/context/auth-context';
+import './PlaceForm.css';
 
-import Input from "../../shared/components/FormElements/Input";
-import Button from "../../shared/components/FormElements/Button";
-import Card from "../../shared/components/UIElements/Card";
-import { useForm } from "../../shared/hooks/form-hook";
-import "./PlaceForm.css";
-
-const DUMMY_PLACES = [
-  {
-    id: "p1",
-    title: "Minar-e-Pakistan",
-    description:
-      "Minar-e-Pakistan is a national monument located in Lahore, Pakistan. The tower was built between 1960 and 1968 on the site where the All-India Muslim League passed the Lahore Resolution on 23 March 1940",
-    imageUrl:
-      "https://media-cdn.tripadvisor.com/media/photo-s/19/dd/fb/84/menar-e-pakistan.jpg",
-    address:
-      "Minar-e-Pakistan, Circular Rd, Walled City of Lahore, Lahore, Punjab 54000, Pakistan",
-    location: {
-      lat: 31.5925194,
-      lng: 74.3072963,
-    },
-    creatorId: "u1",
-  },
-  {
-    id: "p2",
-    title: "Minar-e-Pakistan",
-    description:
-      "Minar-e-Pakistan is a national monument located in Lahore, Pakistan. The tower was built between 1960 and 1968 on the site where the All-India Muslim League passed the Lahore Resolution on 23 March 1940",
-    imageUrl:
-      "https://media-cdn.tripadvisor.com/media/photo-s/19/dd/fb/84/menar-e-pakistan.jpg",
-    address:
-      "Minar-e-Pakistan, Circular Rd, Walled City of Lahore, Lahore, Punjab 54000, Pakistan",
-    location: {
-      lat: 31.5925194,
-      lng: 74.3072963,
-    },
-    creatorId: "u2",
-  },
-];
-
-const UpdatePlaces = () => {
-  const [isLoading, setIsLoading] = useState(true);
+const UpdatePlace = () => {
+  const auth = useContext(AuthContext);
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const [loadedPlace, setLoadedPlace] = useState();
   const placeId = useParams().placeId;
+  const history = useHistory();
 
   const [formState, inputHandler, setFormData] = useForm(
     {
       title: {
-        value: "",
-        isValid: false,
+        value: '',
+        isValid: false
       },
       description: {
-        value: "",
-        isValid: false,
-      },
+        value: '',
+        isValid: false
+      }
     },
     false
   );
 
-  const identifiedPlace = DUMMY_PLACES.find((p) => p.id === placeId);
-
   useEffect(() => {
-    if (identifiedPlace) {
-      setFormData(
-        {
-          title: {
-            value: identifiedPlace.title,
-            isValid: true,
+    const fetchPlace = async () => {
+      try {
+        const responseData = await sendRequest(
+          `http://localhost:5000/api/places/${placeId}`
+        );
+        setLoadedPlace(responseData.place);
+        setFormData(
+          {
+            title: {
+              value: responseData.place.title,
+              isValid: true
+            },
+            description: {
+              value: responseData.place.description,
+              isValid: true
+            }
           },
-          description: {
-            value: identifiedPlace.description,
-            isValid: true,
-          },
-        },
-        true
-      );
-    }
+          true
+        );
 
-    setIsLoading(false);
-  }, [setFormData, identifiedPlace]);
+      } catch (err) {}
+    };
+    fetchPlace();
+  }, [sendRequest, placeId, setFormData]);
 
-  const placeUpdateSubmitHandler = (event) => {
+  const placeUpdateSubmitHandler = async event => {
     event.preventDefault();
-    console.log(formState.inputs);
+    try {
+      await sendRequest(
+        `http://localhost:5000/api/places/${placeId}`,
+        'PATCH',
+        JSON.stringify({
+          title: formState.inputs.title.value,
+          description: formState.inputs.description.value
+        }),
+        {
+          'Content-Type': 'application/json'
+        }
+      );
+      history.push('/' + auth.userId + '/places');
+    } catch (err) {}
   };
 
-  console.log(formState);
+  if (isLoading) {
+    return (
+      <div className="center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
-  if (!identifiedPlace) {
+  if (!loadedPlace && !error) {
     return (
       <div className="center">
         <Card>
-          <h2>Could not find any place.</h2>
+          <h2>Could not find place!</h2>
         </Card>
       </div>
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="center">
-        <h2>Loading..</h2>
-      </div>
-    );
-  }
   return (
-    <form className="place-form" onSubmit={placeUpdateSubmitHandler}>
-      <Input
-        id="title"
-        element="input"
-        type="text"
-        label="Title"
-        validators={[VALIDATOR_REQUIRE()]}
-        errorText="Please enter a valid title."
-        onInput={inputHandler}
-        initialValue={formState.inputs.title.value}
-        initialValid={formState.inputs.title.isValid}
-      />
-
-      <Input
-        id="description"
-        type="textarea"
-        label="Description"
-        validators={[VALIDATOR_MINLENGTH(5)]}
-        errorText="Please enter a valid description."
-        onInput={inputHandler}
-        initialValue={formState.inputs.description.value}
-        initialValid={formState.inputs.description.isValid}
-      />
-
-      <Button type="submit" disabled={!formState.isValid}>
-        UPDATE
-      </Button>
-    </form>
+    <React.Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+      {!isLoading && loadedPlace && (
+        <form className="place-form" onSubmit={placeUpdateSubmitHandler}>
+          <Input
+            id="title"
+            element="input"
+            type="text"
+            label="Title"
+            validators={[VALIDATOR_REQUIRE()]}
+            errorText="Please enter a valid title."
+            onInput={inputHandler}
+            initialValue={loadedPlace.title}
+            initialValid={true}
+          />
+          <Input
+            id="description"
+            element="textarea"
+            label="Description"
+            validators={[VALIDATOR_MINLENGTH(5)]}
+            errorText="Please enter a valid description (min. 5 characters)."
+            onInput={inputHandler}
+            initialValue={loadedPlace.description}
+            initialValid={true}
+          />
+          <Button type="submit" disabled={!formState.isValid}>
+            UPDATE PLACE
+          </Button>
+        </form>
+      )}
+    </React.Fragment>
   );
 };
 
-export default UpdatePlaces;
+export default UpdatePlace;

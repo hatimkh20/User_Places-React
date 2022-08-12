@@ -77,6 +77,7 @@ const PlaceItem = (props) => {
 
             {auth.isLoggedIn && (
               <React.Fragment>
+                {console.log(props)}
                 <Button to={`/places/${props.id}`}>Edit</Button>
                 <Button danger onClick={openDeleteConfirmModalHandler}>
                   Delete
