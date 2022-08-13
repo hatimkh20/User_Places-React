@@ -7,6 +7,8 @@ import {
   VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE,
 } from "../../shared/util/validators";
+
+import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 
@@ -42,6 +44,7 @@ const Auth = () => {
         {
           ...formState.inputs,
           name: undefined,
+          image: undefined
         },
         formState.inputs.email.isValid && formState.inputs.password.isValid
       );
@@ -53,6 +56,10 @@ const Auth = () => {
             value: "",
             isValid: true,
           },
+          image: {
+            value: null, 
+            isValid: false,
+          }
         },
         false
       );
@@ -62,6 +69,8 @@ const Auth = () => {
 
   const authSubmitHandler = async (event) => {
     event.preventDefault();
+
+    console.log(formState.inputs)
 
     if (isLoginMode) {
       try {
@@ -109,6 +118,7 @@ const Auth = () => {
 
         <form onSubmit={authSubmitHandler}>
           {!isLoginMode && (
+            <React.Fragment>
             <Input
               id="name"
               type="text"
@@ -120,7 +130,12 @@ const Auth = () => {
               onInput={inputHandler}
               value=""
             ></Input>
+
+            <ImageUpload id='image' center onInput={inputHandler} /> 
+            </React.Fragment>
           )}
+
+
           <Input
             id="email"
             type="email"
