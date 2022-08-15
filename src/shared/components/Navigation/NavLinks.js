@@ -10,7 +10,7 @@ const NavLinks = (props) => {
     <ul className="nav-links">
       <li>
         <NavLink to="/" exact>
-          All Places
+          All Users
         </NavLink>
       </li>
       {auth.isLoggedIn && (
