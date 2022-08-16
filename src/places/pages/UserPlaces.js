@@ -14,28 +14,26 @@ const UserPlaces = (props) => {
 
   useEffect(() => {
     const fetchPlaces = async () => {
-
       try {
         const response = await fetch(
           `http://localhost:5000/api/places/user/${userId}`
         );
         console.log("response: ", response);
 
-        if(response.status === 404){
-          console.log("Not found.")
+        if (response.status === 404) {
+          console.log("Not found.");
           return;
-       }
+        }
 
-        const responseData = await response.json()
-      
+        const responseData = await response.json();
+
         if (!response.ok) {
           throw new Error(responseData.message);
         }
 
         setLoadedPlaces(responseData.place);
-        
       } catch (err) {
-        console.log("error: ", err)
+        console.log("error: ", err);
       }
     };
 
@@ -43,9 +41,10 @@ const UserPlaces = (props) => {
   }, [sendRequest, userId]);
 
   const placeDeleteHandler = (deletedPlaceId) => {
-    setLoadedPlaces((prevPlaces) =>
-      prevPlaces.filter((place) => place.id !== deletedPlaceId)
-    );
+    setLoadedPlaces((prevPlaces) => {
+      prevPlaces.filter((place) => place.id !== deletedPlaceId);
+      console.log("loaded places: ", prevPlaces);
+    });
   };
   return (
     <React.Fragment>
@@ -59,14 +58,13 @@ const UserPlaces = (props) => {
       )}
 
       {!isLoading && !loadedPlaces && (
-        <div className='center'>
-        <Card>
+        <div className="center">
+          <Card>
             <h2>No Places Found.</h2>
-        </Card>
-    </div>
+          </Card>
+        </div>
       )}
       <ErrorModal error={error} onClear={clearError} />
-
     </React.Fragment>
   );
 };
