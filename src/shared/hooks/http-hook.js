@@ -12,6 +12,7 @@ export const useHttpClient = () => {
 
       const httpAbortCtrl = new AbortController();
       activeHttpRequests.current.push(httpAbortCtrl);
+      console.log("headers: ", headers);
 
       try {
         const response = await fetch(url, {
@@ -20,7 +21,7 @@ export const useHttpClient = () => {
           headers,
           signal: httpAbortCtrl.signal,
         });
-
+        
         const responseData = await response.json();
 
         activeHttpRequests.current = activeHttpRequests.current.filter(

@@ -1,40 +1,72 @@
-import React from "react";
-import { useParams } from "react-router"; 
-
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import { useHttpClient } from "../../shared/hooks/http-hook";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import Card from "../../shared/components/UIElements/Card";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import PlaceList from "../components/PlaceList";
 
-const DUMMY_PLACES= [
-    {
-        id: 'p1',
-        title: 'Minar-e-Pakistan',
-        description: 'Minar-e-Pakistan is a national monument located in Lahore, Pakistan. The tower was built between 1960 and 1968 on the site where the All-India Muslim League passed the Lahore Resolution on 23 March 1940',
-        imageUrl: 'https://media-cdn.tripadvisor.com/media/photo-s/19/dd/fb/84/menar-e-pakistan.jpg',
-        address: 'Minar-e-Pakistan, Circular Rd, Walled City of Lahore, Lahore, Punjab 54000, Pakistan',
-        location: {
-            lat: 31.5925194,
-            lng: 74.3072963
-        },
-        creatorId: 'u1'
-    },
-    {
-        id: 'p2',
-        title: 'Minar-e-Pakistan',
-        description: 'Minar-e-Pakistan is a national monument located in Lahore, Pakistan. The tower was built between 1960 and 1968 on the site where the All-India Muslim League passed the Lahore Resolution on 23 March 1940',
-        imageUrl: 'https://media-cdn.tripadvisor.com/media/photo-s/19/dd/fb/84/menar-e-pakistan.jpg',
-        address: 'Minar-e-Pakistan, Circular Rd, Walled City of Lahore, Lahore, Punjab 54000, Pakistan',
-        location: {
-            lat: 31.5925194,
-            lng: 74.3072963
-        },
-        creatorId: 'u2'
-    }
+const UserPlaces = (props) => {
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
-]
+  const [loadedPlaces, setLoadedPlaces] = useState();
+  const userId = useParams().userId;
 
-const UserPlaces = props => {
-    const userId = useParams().userId;
-    const loadedPlaces = DUMMY_PLACES.filter(place => place.creatorId === userId);
-    return <PlaceList items={loadedPlaces} />
-}
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/places/user/${userId}`
+        );
+        console.log("response: ", response);
+
+        if (response.status === 404) {
+          console.log("Not found.");
+          return;
+        }
+
+        const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(responseData.message);
+        }
+
+        setLoadedPlaces(responseData.place);
+      } catch (err) {
+        console.log("error: ", err);
+      }
+    };
+
+    fetchPlaces();
+  }, [sendRequest, userId]);
+
+  const placeDeleteHandler = (deletedPlaceId) => {
+    setLoadedPlaces((prevPlaces) => {
+      prevPlaces.filter((place) => place.id !== deletedPlaceId);
+      console.log("loaded places: ", prevPlaces);
+    });
+  };
+  return (
+    <React.Fragment>
+      {isLoading && (
+        <div className="center">
+          <LoadingSpinner />
+        </div>
+      )}
+      {!isLoading && loadedPlaces && (
+        <PlaceList items={loadedPlaces} onDeletePlace={placeDeleteHandler} />
+      )}
+
+      {!isLoading && !loadedPlaces && (
+        <div className="center">
+          <Card>
+            <h2>No Places Found.</h2>
+          </Card>
+        </div>
+      )}
+      <ErrorModal error={error} onClear={clearError} />
+    </React.Fragment>
+  );
+};
 
 export default UserPlaces;
